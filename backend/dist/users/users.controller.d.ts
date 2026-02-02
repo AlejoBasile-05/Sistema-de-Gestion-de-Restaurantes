@@ -9,6 +9,6 @@ export declare class UsersController {
     getProfile(user: ActiveUserInterface): Promise<import("./entities/user.entity").User | null>;
     findAll(user: ActiveUserInterface): Promise<import("./entities/user.entity").User[]>;
     findOne(id: string): Promise<import("./entities/user.entity").User | null>;
-    update(id: string, updateUserDto: UpdateUserDto): Promise<import("typeorm").UpdateResult>;
+    update(id: string, updateUserDto: UpdateUserDto): Promise<import("./entities/user.entity").User | null>;
     remove(id: string): Promise<import("typeorm").DeleteResult>;
 }

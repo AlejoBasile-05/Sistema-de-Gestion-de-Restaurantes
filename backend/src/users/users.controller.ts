@@ -8,8 +8,7 @@ import { Roles } from 'src/common/decorator/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import type { ActiveUserInterface } from 'src/common/interfaces/active-user.interfaces';
-import { use } from 'passport';
-
+import * as bcrypt from 'bcrypt';
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
@@ -42,8 +41,17 @@ export class UsersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+
+    if (updateUserDto.password) {
+
+      const salt = await bcrypt.genSalt(10);
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, salt);
+    }
+
+    await this.usersService.update(+id, updateUserDto);
+
+    return this.usersService.findOne(+id);
   }
 
   @Delete(':id')
