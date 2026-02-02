@@ -38,20 +38,27 @@ Para ejecutar este proyecto localmente, asegúrate de tener instalados **Node.js
    cd nombre-del-repo
 
 2. **Levantar servicios con Docker (PostgreSQL):**
-    docker-compose up -d
+   ```bash
+   docker-compose up -d
 
 3. **Configuración del Backend:**
-    cd backend
-    npm install
-    npm run start:dev
+   ```bash
+   cd backend
+   npm install
+   npm run start:dev
+
 
 4. **Configuración del Frontend:**
-    cd frontend
-    npm install
-    npm run dev
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
 
 ## 📑 Documentación de la API
-Una vez iniciado el backend, puedes acceder a la documentación interactiva en: http://localhost:3000/api/docs
+Una vez iniciado el backend, puedes acceder a la documentación interactiva en:
+   ```bash
+   http://localhost:3000/api/docs
+
 
 ## 👤 Autor
     Alejo Basile Soca

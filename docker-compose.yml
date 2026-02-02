@@ -8,8 +8,8 @@ services:
     ports:
       - "5432:5432" 
     environment:
-      POSTGRES_USER: admin_restaurante
-      POSTGRES_PASSWORD: password_seguro_123
-      POSTGRES_DB: restaurante_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - ./postgres_data:/var/lib/postgresql/data 

@@ -13,7 +13,6 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
 
-  // La documentación estará en /api
   SwaggerModule.setup('api', app, document); 
 
   await app.listen(3000);

@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto'; // Reutilizaremos este DTO por ahora
 import { User } from 'src/users/entities/user.entity';
@@ -14,7 +14,7 @@ export class AuthController {
     if (validation) {
       return await this.authService.login(validation)
     } else {
-      return null
+      throw new UnauthorizedException('Credenciales inválidas');
     }
   }
 }
