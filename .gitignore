@@ -1,8 +1,8 @@
 # compiled output
-/dist
-/node_modules
-/build
-/postgres_data
+dist
+node_modules
+build
+postgres_data
 
 # Logs
 logs

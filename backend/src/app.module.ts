@@ -4,6 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { IngredientsModule } from './ingredients/ingredients.module';
+import { StockMovementsModule } from './stock-movements/stock-movements.module';
+import { ProductsModule } from './products/products.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
 imports: [
@@ -19,6 +23,10 @@ imports: [
     }),
     UsersModule,
     AuthModule,
+    IngredientsModule,
+    StockMovementsModule,
+    ProductsModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
