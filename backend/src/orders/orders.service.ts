@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { Order } from './entities/order.entity';
+import { Order, OrderStatus } from './entities/order.entity';
 import { Repository } from 'typeorm/repository/Repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/products/entities/product.entity';
@@ -67,8 +67,9 @@ export class OrdersService {
     return result;
   }
 
-  async findAll() {
+  async findAll(status : OrderStatus) {
       return this.orderRepository.find({
+        where: status ? { status } : {},
         relations: {
           orderItems: {
             product: true,
