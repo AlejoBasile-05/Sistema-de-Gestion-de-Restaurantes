@@ -9,6 +9,7 @@ import { Ingredient } from 'src/ingredients/entities/ingredient.entity';
 import { In } from 'typeorm/find-options/operator/In';
 import { OrderItem } from './entities/order-item.entity';
 import { DataSource } from 'typeorm/data-source/DataSource';
+import { MovementType, StockMovement } from 'src/stock-movements/entities/stock-movement.entity';
 
 @Injectable()
 export class OrdersService {
@@ -17,23 +18,24 @@ export class OrdersService {
     @InjectRepository(Order) private readonly orderRepository: Repository<Order>,
     @InjectRepository(Product) private readonly productRepository: Repository<Product>,
     @InjectRepository(Ingredient) private readonly ingredientRepository: Repository<Ingredient>,
+    @InjectRepository(StockMovement) private readonly stockMovementRepository: Repository<StockMovement>,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
-
-    const productIds = createOrderDto.orderItems.map(item => item.productId);
-    const productWithIngredients = await this.productRepository.find({ where: { id: In(productIds) }, relations: {
-        productIngredients: { ingredient: true }} });
-
-    if (productWithIngredients.length !== new Set(productIds).size) { // new Set() elimina duplicados de un array
-      throw new NotFoundException('Alguno de los productos no existe');
-    }
-
-    let total = 0;
-    const orderItemsEntities: OrderItem[] = [];
     
     // Utilizo transaction para asegurar la integridad de los datos
     const result = await this.dataSource.transaction(async (manager) => {
+
+      const productIds = createOrderDto.orderItems.map(item => item.productId);
+      const productWithIngredients = await manager.getRepository(Product).find({ where: { id: In(productIds) }, relations: {
+          productIngredients: { ingredient: true }} });
+
+      if (productWithIngredients.length !== new Set(productIds).size) { // new Set() elimina duplicados de un array
+        throw new NotFoundException('Alguno de los productos no existe');
+      }
+
+      let total = 0;
+      const orderItemsEntities: OrderItem[] = [];
 
       for (const item of createOrderDto.orderItems) {
         const product = productWithIngredients.find(p => p.id === item.productId);
@@ -44,6 +46,12 @@ export class OrdersService {
           }
           pi.ingredient.stock -= item.quantity * pi.quantity;
           await manager.getRepository(Ingredient).save(pi.ingredient);
+          await manager.getRepository(StockMovement).save({
+            quantity: item.quantity * pi.quantity,
+            type: MovementType.OUT,
+            description: `Uso en orden de mesa ${createOrderDto.tableId}`,
+            ingredient: pi.ingredient,
+          });
         }
 
         total += Number(product?.price) * item.quantity;
