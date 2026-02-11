@@ -26,3 +26,17 @@ export class StockMovement {
     @ManyToOne(() => Ingredient, (ingredient) => ingredient.stockMovements)
     ingredient: Ingredient;
 }
+
+export class StockMovementArray {
+      @Column({ type: 'decimal', precision: 10, scale: 2 })
+    quantity: number;
+
+    @Column({ type: 'enum', enum: MovementType })
+    type: MovementType;
+
+    @Column({ type: 'varchar', nullable: true })
+    description: string;
+
+    @ManyToOne(() => Ingredient, (ingredient) => ingredient.stockMovements)
+    ingredient: Ingredient;
+}

@@ -11,7 +11,7 @@ export class CreateOrderDto {
     orderItems: OrderItemDto[];
 }
 
-class OrderItemDto {
+export class OrderItemDto {
     @IsInt()
     productId: number;
 

@@ -8,6 +8,7 @@ import { IngredientsModule } from './ingredients/ingredients.module';
 import { StockMovementsModule } from './stock-movements/stock-movements.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
 imports: [
@@ -27,6 +28,7 @@ imports: [
     StockMovementsModule,
     ProductsModule,
     OrdersModule,
+    ConfigModule.forRoot({ isGlobal: true }),
   ],
   controllers: [AppController],
   providers: [AppService],

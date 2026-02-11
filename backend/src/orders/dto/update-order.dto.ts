@@ -4,6 +4,8 @@ import { OrderStatus } from '../entities/order.entity';
 import { IsEnum } from 'class-validator';
 
 export class UpdateOrderDto extends PartialType(CreateOrderDto) {
-    @IsEnum(OrderStatus)
+    @IsEnum(OrderStatus, {
+        message: `El estado debe ser uno de: ${Object.values(OrderStatus).join(', ')}`,
+    })
     status: OrderStatus;
 }

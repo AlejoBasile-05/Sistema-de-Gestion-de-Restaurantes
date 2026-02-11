@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany} from 'typeorm';
 import { Exclude } from "class-transformer"
+import { Order } from 'src/orders/entities/order.entity';
 
 export enum UserRole {
   MOZO = 'mozo',
@@ -29,5 +30,7 @@ export class User {
   @Exclude()
   @Column()
   password: string;
+
+  @OneToMany(() => Order, (order) => order.user) orders: Order[];
 
 }
