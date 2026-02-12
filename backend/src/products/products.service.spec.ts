@@ -1,17 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsService } from './products.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Product } from 'src/products/entities/product.entity';
+import { Product } from './entities/product.entity';
+import { ProductIngredient } from './entities/product-ingredient.entity';
 
 describe('ProductsService', () => {
   let service: ProductsService;
 
-  // Mock básico del repositorio (para que no intente conectarse a la base de datos real)
-  const mockProductRepository = {
+  const mockRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -19,8 +21,12 @@ describe('ProductsService', () => {
       providers: [
         ProductsService,
         {
-            provide: getRepositoryToken(Product),
-            useValue: mockProductRepository,
+          provide: getRepositoryToken(Product),
+          useValue: mockRepository,
+        },
+        {
+          provide: getRepositoryToken(ProductIngredient),
+          useValue: mockRepository,
         },
       ],
     }).compile();
@@ -31,9 +37,4 @@ describe('ProductsService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  /*
-  it('debería retornar un ingrediente si existe', () => {
-      // Tu lógica...
-  });
-  */
 });
