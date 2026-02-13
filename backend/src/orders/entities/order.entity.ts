@@ -8,6 +8,7 @@ export enum OrderStatus {
   LISTO = 'LISTO',
   CANCELADO = 'CANCELADO',
   ENTREGADO = 'ENTREGADO',
+  PAGADO = 'PAGADO'
 }
 
 @Entity()

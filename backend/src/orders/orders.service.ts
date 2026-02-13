@@ -11,9 +11,16 @@ import { OrderItem } from './entities/order-item.entity';
 import { DataSource } from 'typeorm/data-source/DataSource';
 import { MovementType, StockMovement } from 'src/stock-movements/entities/stock-movement.entity';
 import { User } from 'src/users/entities/user.entity';
-import { DeepPartial } from 'typeorm';
+import { DeepPartial, Or } from 'typeorm';
 import { BadRequestException } from '@nestjs/common/exceptions';
 import { BillDto } from './dto/bill.dto';
+import { GetStatsQueryDto } from './dto/get-stats-query.dto';
+
+const formatter = new Intl.NumberFormat('es-AR', {
+  style: 'currency',
+  currency: 'ARS',
+  minimumFractionDigits: 2
+});
 
 @Injectable()
 export class OrdersService {
@@ -160,18 +167,61 @@ export class OrdersService {
 
     const total =  orders.reduce((acc, order) => acc + Number(order.total), 0);
 
-    const result : BillDto = {
+    const testItems = orders.flatMap(order => order.orderItems.map(item => ({
+      productId: item.product.id,
+      quantity: Number(item.quantity),
+      price: Number(item.price),   
+      productName: item.product.name   
+    })));
+
+    const groupedItemsMap: Record<number, typeof testItems[0]> = {};
+
+    testItems.forEach(item => {
+      const existingItem = groupedItemsMap[item.productId]; // Utilizo la variable temporal para que no me de el problema de posible undefined
+
+      if (existingItem) {
+        existingItem.quantity += item.quantity;
+
+      } else {
+        groupedItemsMap[item.productId] = { ...item };
+      }
+    });
+
+    const result: BillDto = {
       tableId,
-      orderItems: orders.flatMap(order => order.orderItems.map(item => ({
-        productId: item.product.id,
-        quantity: item.quantity,
-        price: item.price,
-      }))),
+      orderItems: Object.values(groupedItemsMap),
       totalAmount: total,
       createdAt: new Date(),
     };
 
     return result
+  }
+
+async payBill(tableId: number) {
+    return await this.dataSource.transaction(async (manager) => {
+      const pendingOrdersCount = await manager.count(Order, {
+        where: { 
+          tableId, 
+          status: In([OrderStatus.PENDIENTE, OrderStatus.LISTO, OrderStatus.ENTREGADO]) 
+        },
+      });
+
+      if (pendingOrdersCount === 0) {
+        throw new NotFoundException(`No hay órdenes pendientes para la mesa ${tableId}`);
+      }
+
+      await manager.update(Order, 
+        { 
+          tableId, 
+          status: In([OrderStatus.PENDIENTE, OrderStatus.LISTO, OrderStatus.ENTREGADO]) 
+        }, 
+        { 
+          status: OrderStatus.PAGADO 
+        }
+      );
+      
+      return { message: `Mesa ${tableId} cerrada. ${pendingOrdersCount} órdenes procesadas.` };
+    });
   }
 
   async findOne(id: number) {
@@ -251,6 +301,79 @@ export class OrdersService {
       throw new NotFoundException(`La orden con id ${id} no existe`);
     }
     return this.orderRepository.save(order);
+  }
+
+  async getRestaurantStatus() {
+    const activeTables = await this.orderRepository
+      .createQueryBuilder('order')
+      .select('DISTINCT order.tableId', 'id')
+      .where('order.status IN (:...statuses)', { 
+        statuses: [OrderStatus.PENDIENTE, OrderStatus.LISTO, OrderStatus.ENTREGADO] 
+      })
+      .getRawMany();
+
+    const occupiedTableIds = activeTables.map(t => t.id);
+
+    const totalTables = parseInt(process.env.TOTAL_TABLES || '20', 10); 
+
+    return {
+      totalTables,
+      occupiedTables: occupiedTableIds 
+    };
+  }
+
+  async getDailyStats(dateQuery?: GetStatsQueryDto) {
+
+    const baseDate = dateQuery?.date ? new Date(dateQuery.date) : new Date();
+
+    const start = new Date(baseDate);
+    start.setHours(0, 0, 0, 0);
+
+
+    const end = new Date(baseDate);
+    end.setHours(23, 59, 59, 999);
+
+    const totalSales = await this.orderRepository
+      .createQueryBuilder('order')
+      .select('SUM(order.total)', 'sum')
+      .where('order.status = :status', { status: OrderStatus.PAGADO })
+      .andWhere('order.createdAt BETWEEN :start AND :end', { start: start, end: end })
+      .getRawOne();
+
+    const activeOrdersCount = await this.orderRepository.count({
+      where: { 
+        status: In([OrderStatus.PENDIENTE, OrderStatus.LISTO, OrderStatus.ENTREGADO]) 
+      }
+    });
+
+    const topProducts = await this.dataSource
+      .getRepository(OrderItem)
+      .createQueryBuilder('item')
+      .leftJoin('item.order', 'order')
+      .leftJoinAndSelect('item.product', 'product')
+      .select('product.name', 'name')
+      .addSelect('SUM(item.quantity)', 'totalQuantity')
+      .where('order.createdAt BETWEEN :start AND :end', { start: start, end: end })
+      .andWhere('order.status = :status', { status: OrderStatus.PAGADO })
+      .groupBy('product.id')
+      .addGroupBy('product.name')
+      .orderBy('"totalQuantity"', 'DESC')
+      .limit(5)
+      .getRawMany();
+
+    const profits = parseFloat(totalSales.sum) || 0;
+    const roundedProfits = Math.round(profits);
+
+    return {
+      date: start.toISOString().split('T')[0],
+      profits: profits,
+      profitsFormatted: formatter.format(roundedProfits),
+      activeTablesCount: activeOrdersCount,
+      topSellingProducts: topProducts.map(p => ({
+        name: p.name,
+        quantity: parseInt(p.totalQuantity)
+      }))
+    };
   }
 
   async remove(id: number) {
