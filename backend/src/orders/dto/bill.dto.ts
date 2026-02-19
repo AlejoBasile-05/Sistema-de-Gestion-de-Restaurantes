@@ -1,22 +1,13 @@
-import { IsArray, IsDate, IsNumber } from "class-validator";
+import { IsArray, IsDate, IsEnum, IsNotEmpty, IsNumber } from "class-validator";
 import { Type } from "class-transformer";
 import { ValidateNested } from "class-validator";
 import { OrderItemDto } from "./create-order.dto";
-import { CreateDateColumn } from "typeorm";
+import { MetodoDePago } from "./orders.dto";
 
 export class BillDto {
 
-    @IsNumber()
-    tableId: number;
+    @IsNotEmpty({ message: 'El método de pago es obligatorio' })
+    @IsEnum(MetodoDePago, { message: 'Método de pago inválido. Debe ser EFECTIVO o TARJETA' })
+    paymentMethod: MetodoDePago;
 
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => OrderItemDto)
-    orderItems: OrderItemDto[];
-
-    @IsNumber()
-    totalAmount: number;
-
-    @IsDate()
-    createdAt: Date;
 }

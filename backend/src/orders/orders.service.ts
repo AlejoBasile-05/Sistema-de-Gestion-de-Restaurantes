@@ -11,10 +11,13 @@ import { OrderItem } from './entities/order-item.entity';
 import { DataSource } from 'typeorm/data-source/DataSource';
 import { MovementType, StockMovement } from 'src/stock-movements/entities/stock-movement.entity';
 import { User } from 'src/users/entities/user.entity';
-import { DeepPartial, Or } from 'typeorm';
+import { MetodoDePago } from './dto/orders.dto';
 import { BadRequestException } from '@nestjs/common/exceptions';
-import { BillDto } from './dto/bill.dto';
+import { OrdersDto } from './dto/orders.dto';
 import { GetStatsQueryDto } from './dto/get-stats-query.dto';
+import { Between } from 'typeorm/find-options/operator/Between';
+import { IsNull } from 'typeorm/find-options/operator/IsNull';
+import { BillDto } from './dto/bill.dto';
 
 const formatter = new Intl.NumberFormat('es-AR', {
   style: 'currency',
@@ -109,6 +112,7 @@ export class OrdersService {
         .values({
           tableId: createOrderDto.tableId,
           total: total,
+          createdAt: new Date(),
           status: OrderStatus.PENDIENTE,
           user: { id: user.id }, 
         })
@@ -152,7 +156,7 @@ export class OrdersService {
       });
     }
 
-  async findForTable(tableId: number) {
+  async findForTable(tableId: number, paymentMethod?: MetodoDePago) {
     const orders = await this.orderRepository.find({
       where: { tableId: tableId, status: In([OrderStatus.ENTREGADO, OrderStatus.LISTO, OrderStatus.PENDIENTE]) },
       relations: {
@@ -187,8 +191,9 @@ export class OrdersService {
       }
     });
 
-    const result: BillDto = {
+    const result: OrdersDto = {
       tableId,
+      paymentMethod: null,
       orderItems: Object.values(groupedItemsMap),
       totalAmount: total,
       createdAt: new Date(),
@@ -197,7 +202,7 @@ export class OrdersService {
     return result
   }
 
-async payBill(tableId: number) {
+  async payBill(tableId: number, paymentMethod: BillDto) {
     return await this.dataSource.transaction(async (manager) => {
       const pendingOrdersCount = await manager.count(Order, {
         where: { 
@@ -213,10 +218,12 @@ async payBill(tableId: number) {
       await manager.update(Order, 
         { 
           tableId, 
-          status: In([OrderStatus.PENDIENTE, OrderStatus.LISTO, OrderStatus.ENTREGADO]) 
+          status: In([OrderStatus.PENDIENTE, OrderStatus.LISTO, OrderStatus.ENTREGADO]),
+          paymentMethod: IsNull()
         }, 
         { 
-          status: OrderStatus.PAGADO 
+          status: OrderStatus.PAGADO,
+          paymentMethod: paymentMethod.paymentMethod
         }
       );
       
@@ -320,6 +327,17 @@ async payBill(tableId: number) {
       totalTables,
       occupiedTables: occupiedTableIds 
     };
+  }
+
+  async findForDate(start: Date, end: Date) {
+    return await this.orderRepository.find({
+      where: {
+        createdAt: Between(
+          start,
+          end
+        )
+      },
+    });
   }
 
   async getDailyStats(dateQuery?: GetStatsQueryDto) {

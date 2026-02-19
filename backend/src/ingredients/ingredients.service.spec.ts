@@ -6,7 +6,6 @@ import { Ingredient } from './entities/ingredient.entity';
 describe('IngredientsService', () => {
   let service: IngredientsService;
 
-  // Mock básico del repositorio (para que no intente conectarse a la base de datos real)
   const mockIngredientRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
@@ -31,9 +30,4 @@ describe('IngredientsService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  /*
-  it('debería retornar un ingrediente si existe', () => {
-      // Tu lógica...
-  });
-  */
 });

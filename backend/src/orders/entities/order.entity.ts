@@ -1,6 +1,8 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 import { User } from 'src/users/entities/user.entity';
+import { MetodoDePago } from '../dto/orders.dto';
+import { CashShift } from 'src/cash-shifts/entities/cash-shift.entity';
 
 
 export enum OrderStatus {
@@ -19,11 +21,17 @@ export class Order {
   @ManyToOne(() => User, (user) => user.orders)
   user: User;
 
-  @CreateDateColumn()
+  @Column({type: 'timestamptz', nullable: true })
   createdAt: Date;
+
+  @Column({ nullable: true })
+  cashShiftId: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   total: number;
+
+  @Column({ type: 'enum', enum: MetodoDePago, nullable: true })
+  paymentMethod: MetodoDePago;
 
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDIENTE })
   status: OrderStatus;  
@@ -33,4 +41,8 @@ export class Order {
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
     orderItems: OrderItem[];
+
+  @ManyToOne(() => CashShift, (cashShift) => cashShift.orders, { nullable: true })
+  @JoinColumn({ name: 'cashShiftId' })
+  cashShift: CashShift | null;
 }

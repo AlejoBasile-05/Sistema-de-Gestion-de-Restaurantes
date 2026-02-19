@@ -1,6 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany} from 'typeorm';
 import { Exclude } from "class-transformer"
 import { Order } from 'src/orders/entities/order.entity';
+import { CashShift } from 'src/cash-shifts/entities/cash-shift.entity';
+import { Expense } from 'src/expenses/entities/expense.entity';
 
 export enum UserRole {
   MOZO = 'mozo',
@@ -32,5 +34,9 @@ export class User {
   password: string;
 
   @OneToMany(() => Order, (order) => order.user) orders: Order[];
+
+  @OneToMany(() => CashShift, (cashShift) => cashShift.user) cashShifts: CashShift[];
+
+  @OneToMany(() => Expense, (expense) => expense.user) expenses: Expense[];
 
 }

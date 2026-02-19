@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorator/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
@@ -15,12 +15,14 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @ApiOperation({ summary:  'Crear un nuevo usuario' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
   @UseInterceptors(ClassSerializerInterceptor) 
   @Get('profile')
   @UseGuards(AuthGuard('jwt'), RolesGuard) 
+  @ApiOperation({ summary: 'Obtener el perfil del usuario autenticado' })
   @Roles('admin', 'cocinero') // Define quiénes pueden ver su propio perfil
   async getProfile(@ActiveUser() user: ActiveUserInterface) {
     const userEntity = await this.usersService.findOne(user.id);
@@ -31,16 +33,19 @@ export class UsersController {
   @Get()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
+  @ApiOperation({ summary: 'Obtener todos los usuarios' })
   findAll(@ActiveUser() user: ActiveUserInterface) {
     return this.usersService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener un usuario por ID' })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Actualizar un usuario por ID' })
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
 
     if (updateUserDto.password) {
@@ -57,6 +62,7 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
+  @ApiOperation({ summary: 'Eliminar un usuario por ID' })
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }

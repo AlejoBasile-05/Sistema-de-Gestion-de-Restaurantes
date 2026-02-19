@@ -11,6 +11,8 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { ActiveUser } from 'src/common/decorator/active-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { GetStatsQueryDto } from './dto/get-stats-query.dto';
+import { MetodoDePago } from './dto/orders.dto';
+import { BillDto } from './dto/bill.dto';
 
 @ApiTags('orders')
 @ApiBearerAuth()
@@ -20,16 +22,19 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
+  @ApiOperation({ summary: 'Crear una nueva orden' })
   create(@Body() createOrderDto: CreateOrderDto, @ActiveUser() user: User) {
     return this.ordersService.create(createOrderDto, user);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Obtener todas las órdenes con filtro por estado' })
   findAll(@Query('status') status: OrderStatus) {
     return this.ordersService.findAll(status);
   }
   
   @Get('bill')
+  @ApiOperation({ summary: 'Obtener las órdenes de una mesa específica' })
   findForTables(@Query('tableId', ParseIntPipe) tableId: number) {
     return this.ordersService.findForTable(+tableId);
   }
@@ -41,6 +46,7 @@ export class OrdersController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener una orden por ID' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.ordersService.findOne(id);
   }
@@ -51,20 +57,28 @@ export class OrdersController {
     return this.ordersService.getDailyStats(date);
   }
 
+  @Get('date-range')
+  @ApiOperation({ summary: 'Obtener órdenes dentro de un rango de fechas' })
+  async getOrdersByDateRange(@Query('start') start: Date, @Query('end') end: Date) {
+    return this.ordersService.findForDate(start, end);
+  }
+
   @Patch(':id')
+  @ApiOperation({ summary: 'Actualizar el estado de una orden por ID' })
   updateStatus(@Param('id', ParseIntPipe) id: number, @Body() updateOrderDto: UpdateOrderDto) {
     return this.ordersService.updateStatus(id, updateOrderDto);
   }
 
   
-  @Patch('pay/:tableId') // 🛠️ Definimos el parámetro en la ruta
+  @Patch('pay/:tableId')
   @ApiOperation({ summary: 'Marcar todas las órdenes de una mesa como PAGADO' })
-  async payBill(@Param('tableId') tableId: number) {
-    return this.ordersService.payBill(tableId);
+  async payBill(@Param('tableId') tableId: number, @Body() paymentMethod: BillDto) {
+    return this.ordersService.payBill(tableId, paymentMethod);
 }
 
   @Delete(':id')
   @Roles('admin')
+  @ApiOperation({ summary: 'Eliminar una orden por ID' })
   remove(@Param('id') id: string) {
     return this.ordersService.remove(+id);
   }
