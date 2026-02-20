@@ -1,68 +1,74 @@
-# Sistema-de-Gestion-de-Restaurantes
-Sistema integral para la gestión de restaurantes diseñado para optimizar el flujo de pedidos, control de inventario y administración de ventas. Este proyecto implementa una arquitectura moderna y escalable, enfocada en la robustez del backend y una experiencia de usuario fluida en el frontend.
+# Restaurant Management System - Backend API
 
-## 🛠️ Stack Tecnológico
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-FE0902?style=for-the-badge&logo=typeorm&logoColor=white)
+![Jest](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)
 
-### **Backend**
-* **Framework:** NestJS (Node.js)
-* **Lenguaje:** TypeScript
-* **ORM:** TypeORM
-* **Documentación:** Swagger (OpenAPI)
+Una API RESTful robusta y escalable diseñada para manejar la lógica operativa y contable de un restaurante. Desarrollada con **NestJS** y **PostgreSQL**, enfocada en la integridad de datos, seguridad y manejo complejo de transacciones financieras.
 
-### **Frontend**
-* **Framework:** Next.js (React)
-* **Lenguaje:** TypeScript
-* **Estilos:** Tailwind CSS
+## Características Principales (Highlights Técnicos)
 
-### **Infraestructura y Base de Datos**
-* **Base de Datos:** PostgreSQL
-* **Contenerización:** Docker & Docker Compose
+* **Motor Contable de Caja (Cash Shifts):** Algoritmo de apertura/cierre de turnos con reconciliación de discrepancias matemáticas (Efectivo vs. Virtual).
+  * **"Rescate de Órdenes":** Lógica de recuperación de transacciones huérfanas creadas entre turnos, garantizando que el 100% de los ingresos se auditen correctamente sin pérdidas de datos en el "limbo".
+* **Integridad Relacional Estricta:** Uso de APIs de alto nivel de TypeORM y restricciones de PostgreSQL (como `CASCADE DELETE` y `UNIQUE`) para prevenir registros huérfanos entre Órdenes, Productos e Ingredientes.
+* **Gestión Inteligente de Stock:** Descuento automático de inventario basado en recetas de productos (`ProductIngredients`) y registro de auditoría de movimientos de stock (`StockMovements`).
+* **Seguridad y Tipado Estricto:** Autenticación con JWT, Guards basados en Roles (RBAC), encriptación de contraseñas con `bcrypt` y validación estricta de DTOs sin el uso de tipos dinámicos (`any`).
+* **Unit Testing:** Cobertura de tests unitarios utilizando Jest, implementando mocks para inyecciones de dependencias y repositorios de TypeORM.
 
----
+## Arquitectura y Módulos
 
-## 🚀 Características Principales
-* **Gestión de Menú y Pedidos:** Control total sobre productos, categorías y flujo de órdenes.
-* **Administración de Stock:** Actualización automática de inventario basada en ventas.
-* **Arquitectura Modular:** Código organizado por módulos para facilitar el mantenimiento y escalabilidad.
-* **API Documentada:** Endpoints testeables y documentados de forma automática.
+El sistema está construido bajo principios SOLID y arquitectura modular de NestJS:
+- **`Auth` / `Users`**: Manejo de identidad, encriptación y control de acceso por roles (Admin, Cocinero, etc.).
+- **`Orders`**: Corazón transaccional. Manejo de estados de pedidos, métodos de pago (Enums) y facturación unificada por mesas.
+- **`Cash Shifts`**: Auditoría financiera, arqueo de caja y control de gastos operativos.
+- **`Products` / `Ingredients`**: Gestión de menú y control de mermas/stock a nivel de materia prima.
+- **`Stock Movements`**: Trazabilidad detallada de entradas y salidas de inventario.
 
----
+## Instalación y Configuración
 
-## 🔧 Instalación y Configuración
-
-Para ejecutar este proyecto localmente, asegúrate de tener instalados **Node.js** y **Docker**.
-
-1. **Clonar el repositorio:**
+1. Clonar el repositorio:
    ```bash
-   git clone [https://github.com/tu-usuario/nombre-del-repo.git](https://github.com/tu-usuario/nombre-del-repo.git)
-   cd nombre-del-repo
+   git clone [https://github.com/AlejoBasile-05/Sistema-de-Gestion-de-Restaurantes.git](https://github.com/AlejoBasile-05/Sistema-de-Gestion-de-Restaurantes.git)
+   cd Sistema-de-Gestion-de-Restaurantes
+   ```
 
-2. **Levantar servicios con Docker (PostgreSQL):**
+2. Instalar dependencias:
    ```bash
-   docker-compose up -d
-
-3. **Configuración del Backend:**
-   ```bash
-   cd backend
    npm install
+   ```
+
+3. Configurar variables de entorno (crear archivo .env en la raíz):
+   ```bash
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=tu_usuario
+   DB_PASS=tu_password
+   DB_NAME=restaurant_db
+   JWT_SECRET=tu_secreto_super_seguro
+   TOTAL_TABLES=20
+   ```
+
+4. Levantar la aplicación:
+   ```bash
    npm run start:dev
+   ```
 
-
-4. **Configuración del Frontend:**
+## Testing
    ```bash
-   cd frontend
-   npm install
-   npm run dev
+   npm run test
 
-## 📑 Documentación de la API
-Una vez iniciado el backend, puedes acceder a la documentación interactiva en:
+   npm run test:cov
+   ```
+
+## Documentación API (Swagger)
+La API se encuentra completamente documentada con OpenAPI (Swagger).
+Una vez levantado el servidor, la interfaz interactiva estará disponible en:
    ```bash
-   http://localhost:3000/api/docs
+   http://localhost:3000/api
+   ```
 
+---
 
-## 👤 Autor
-    Alejo Basile Soca
-
-    https://github.com/AlejoBasile-05
-
-    www.linkedin.com/in/alejobasilesoca
+*Proyecto desarrollado para demostrar arquitectura backend avanzada, diseño de bases de datos relacionales y resolución de lógicas de negocios complejas.*
