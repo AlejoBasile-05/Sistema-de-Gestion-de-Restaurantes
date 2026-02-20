@@ -30,8 +30,8 @@ El sistema está construido bajo principios SOLID y arquitectura modular de Nest
 
 1. Clonar el repositorio:
    ```bash
-   git clone [https://github.com/AlejoBasile-05/Sistema-de-Gestion-de-Restaurantes.git](https://github.com/AlejoBasile-05/Sistema-de-Gestion-de-Restaurantes.git)
-   cd Sistema-de-Gestion-de-Restaurantes
+   git clone https://github.com/AlejoBasile-05/restaurant-management-api.git
+   cd restaurant-management-api
    ```
 
 2. Instalar dependencias:
